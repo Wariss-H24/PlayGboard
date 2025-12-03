@@ -13,8 +13,8 @@ import { Form, Head } from '@inertiajs/vue3';
 
 <template>
     <AuthBase
-        title="Create an account"
-        description="Enter your details below to create your account"
+        title="LINQUAFLOW"
+        description=""  class="text-white"
     >
         <Head title="Register" />
 
@@ -28,6 +28,7 @@ import { Form, Head } from '@inertiajs/vue3';
                 <div class="grid gap-2">
                     <Label for="name">Name</Label>
                     <Input
+                        class="custom-input"
                         id="name"
                         type="text"
                         required
@@ -43,6 +44,7 @@ import { Form, Head } from '@inertiajs/vue3';
                 <div class="grid gap-2">
                     <Label for="email">Email address</Label>
                     <Input
+                        class="custom-input"
                         id="email"
                         type="email"
                         required
@@ -57,6 +59,7 @@ import { Form, Head } from '@inertiajs/vue3';
                 <div class="grid gap-2">
                     <Label for="password">Password</Label>
                     <Input
+                        class="custom-input"
                         id="password"
                         type="password"
                         required
@@ -71,6 +74,7 @@ import { Form, Head } from '@inertiajs/vue3';
                 <div class="grid gap-2">
                     <Label for="password_confirmation">Confirm password</Label>
                     <Input
+                        class="custom-input"
                         id="password_confirmation"
                         type="password"
                         required
@@ -84,7 +88,7 @@ import { Form, Head } from '@inertiajs/vue3';
 
                 <Button
                     type="submit"
-                    class="mt-2 w-full"
+                    class="mt-2 w-full custom-button"
                     tabindex="5"
                     :disabled="processing"
                     data-test="register-user-button"
@@ -98,10 +102,13 @@ import { Form, Head } from '@inertiajs/vue3';
                 Already have an account?
                 <TextLink
                     :href="login()"
-                    class="underline underline-offset-4"
+                    class="underline underline-offset-4 text-indigo-400 hover:text-indigo-300"
                     :tabindex="6"
                     >Log in</TextLink
                 >
+            </div>
+            <div class="text-white text-3xl font-bold text-center mt-12">
+                REGISTER
             </div>
         </Form>
     </AuthBase>

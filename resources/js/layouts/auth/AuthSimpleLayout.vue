@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
     <div
-        class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
+        class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10 page-background"
     >
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">
@@ -41,3 +41,13 @@ defineProps<{
         </div>
     </div>
 </template>
+<style scoped>
+.page-background {
+    background-color: #0d0d19; /* Bleu très foncé, presque noir */
+    /* Pour l'effet de lueur, utilisez un pseudo-élément ou un grand dégradé radial/conique */
+    background-image: radial-gradient(at 0% 100%, #4c0099 0px, transparent 40%),
+                      radial-gradient(at 100% 100%, #990099 0px, transparent 40%);
+    background-size: cover;
+    min-height: 100vh;
+}
+</style>

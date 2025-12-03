@@ -7,6 +7,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* mon ajout  */
+/* Classes à ajouter à votre composant <Input> */
+/* bg-gray-900: Fond très foncé */
+/* text-white: Texte saisi en blanc */
+/* border-0: Supprimer la bordure par défaut */
+/* focus:ring-2 focus:ring-blue-500: Anneau de focus bleu clair */
+.custom-input {
+    @apply bg-gray-900 border-0 text-white placeholder-gray-500 rounded-md
+           focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500;
+}
+
+/* Classes à ajouter à votre composant <Button> */
+/* bg-indigo-600/700: Couleur principale bleue/violette vive */
+/* text-white: Texte en blanc */
+/* shadow-lg: Pour donner de la profondeur */
+.custom-button {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white font-semibold 
+           py-3 px-6 rounded-lg shadow-lg transition duration-200 
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+}
+
+
+
 @theme inline {
     --font-sans:
         Instrument Sans, ui-sans-serif, system-ui, sans-serif,
