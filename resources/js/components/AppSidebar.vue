@@ -10,19 +10,20 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, traducteur, historique, parametres, compte } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { Home, BookOpen, Clock, Settings, User, Folder } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
+    { title: 'Dashboard', href: dashboard(), icon: Home },
+    { title: 'Traducteur', href: traducteur(), icon: BookOpen },
+    { title: 'Historique', href: historique(), icon: Clock },
+    { title: 'Parametres', href: parametres(), icon: Settings },
+    { title: 'Mon Compte', href: compte(), icon: User },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -40,27 +41,44 @@ const footerNavItems: NavItem[] = [
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
-        <SidebarHeader>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
-                            <AppLogo />
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarHeader>
+    <div>
+        <!-- Mobile hamburger trigger -->
+        <div class="md:hidden fixed top-4 left-4 z-50">
+            <SidebarTrigger />
+        </div>
+            <Sidebar collapsible="icon" variant="inset" class="sidebar data-[sidebar='sidebar']">
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" as-child>
+                            <Link :href="dashboard()">
+                                <AppLogo />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
 
-        <SidebarContent>
-            <NavMain :items="mainNavItems" />
-        </SidebarContent>
+            <SidebarContent>
+                <NavMain :items="mainNavItems" />
+            </SidebarContent>
 
-        <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
-            <NavUser />
-        </SidebarFooter>
-    </Sidebar>
-    <slot />
+            <SidebarFooter>
+                <NavFooter :items="footerNavItems" />
+                <NavUser />
+                <slot name="sidebar-extra" />
+            </SidebarFooter>
+        </Sidebar>
+        <slot />
+    </div>
 </template>
+<style >
+.sidebar,
+[data-sidebar="sidebar"] {
+  background: rgba(18, 28, 58, 0.95);
+  border-right: 2px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 32px 0 rgba(0,0,0,0.18);
+  backdrop-filter: blur(8px);
+  border-radius: 1.5rem 0 0 1.5rem;
+}
+</style>
