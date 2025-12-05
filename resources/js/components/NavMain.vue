@@ -19,7 +19,7 @@ const page = usePage();
 
 <template>
     <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel>Platform</SidebarGroupLabel>
+        <SidebarGroupLabel></SidebarGroupLabel>
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton
@@ -27,7 +27,8 @@ const page = usePage();
                     :is-active="urlIsActive(item.href, page.url)"
                     :tooltip="item.title"
                 >
-                    <Link :href="item.href">
+                    <Link :href="item.href"
+                    :class="['nav-link', urlIsActive(item.href, page.url) ? 'nav-link--active' : '']">
                         <component :is="item.icon" />
                         <span>{{ item.title }}</span>
                     </Link>
@@ -36,3 +37,19 @@ const page = usePage();
         </SidebarMenu>
     </SidebarGroup>
 </template>
+<style>
+.nav-link--active {
+  color: #4C70FF;
+  font-weight: 600;
+  border-left: 4px solid #4C70FF;
+  background: #20203D;
+}
+.nav-link {
+  color: #bdc6cf;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-link:hover {
+  background: #3b3b5a;
+  color: #fdfdfd;
+}
+</style>

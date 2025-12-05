@@ -1,3 +1,47 @@
+/* === BACKGROUND GRADIENT === */
+body {
+    min-height: 100vh;
+    background: linear-gradient(120deg, #0a1a3c 0%, #1e2a6d 40%, #3a1c5c 70%, #ffb86c 100%);
+    background-attachment: fixed;
+}
+
+/* === SIDEBAR STYLE === */
+.sidebar,
+[data-sidebar="sidebar"] {
+    background: rgba(18, 28, 58, 0.95) !important;
+    border-right: 2px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 32px 0 rgba(0,0,0,0.18);
+    backdrop-filter: blur(8px);
+    border-radius: 1.5rem 0 0 1.5rem;
+}
+
+@media (max-width: 767px) {
+    .sidebar,
+    [data-sidebar="sidebar"] {
+        border-radius: 0;
+    }
+}
+
+/* === NAVIGATION LINK STYLES === */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    color: #a0aec0;
+    transition: background 0.2s, color 0.2s;
+}
+.nav-link:hover {
+    background: #20203D;
+    color: #fff;
+}
+.nav-link--active {
+    color: #4C70FF;
+    font-weight: 600;
+    border-left: 4px solid #4C70FF;
+    background: #20203D;
+}
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -112,42 +156,7 @@
     }
 }
 
-:root {
-    --background: hsl(0 0% 100%);
-    --foreground: hsl(0 0% 3.9%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(0 0% 3.9%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(0 0% 3.9%);
-    --primary: hsl(0 0% 9%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 92.1%);
-    --secondary-foreground: hsl(0 0% 9%);
-    --muted: hsl(0 0% 96.1%);
-    --muted-foreground: hsl(0 0% 45.1%);
-    --accent: hsl(0 0% 96.1%);
-    --accent-foreground: hsl(0 0% 9%);
-    --destructive: hsl(0 84.2% 60.2%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 92.8%);
-    --input: hsl(0 0% 89.8%);
-    --ring: hsl(0 0% 3.9%);
-    --chart-1: hsl(12 76% 61%);
-    --chart-2: hsl(173 58% 39%);
-    --chart-3: hsl(197 37% 24%);
-    --chart-4: hsl(43 74% 66%);
-    --chart-5: hsl(27 87% 67%);
-    --radius: 0.5rem;
-    --sidebar-background: hsl(0 0% 98%);
-    --sidebar-foreground: hsl(240 5.3% 26.1%);
-    --sidebar-primary: hsl(0 0% 10%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(0 0% 94%);
-    --sidebar-accent-foreground: hsl(0 0% 30%);
-    --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
-    --sidebar: hsl(0 0% 98%);
-}
+
 
 .dark {
     --background: hsl(0 0% 3.9%);
@@ -189,7 +198,24 @@
     * {
         @apply border-border outline-ring/50;
     }
-    body {
+    body, #app {
         @apply bg-background text-foreground;
-    }
+            /* Couleur de fond très sombre */
+            background-color: #0D0D19; 
+            /* Dégradé subtil pour l'effet de lueur (optionnel mais recommandé) */
+            background-image: radial-gradient(at 0% 100%, #29084D 0px, transparent 50%), 
+                              radial-gradient(at 100% 0%, #29084D 0px, transparent 50%);
+            color: white; /* Assure que tout le texte par défaut est blanc */
+ min-height: 100vh;
+  background: linear-gradient(120deg, #0a1a3c 0%, #1e2a6d 40%, #3a1c5c 70%, #ffb86c 100%);
+  background-attachment: fixed;
+        }
+    .sidebar,
+[data-sidebar="sidebar"] {
+  background: rgba(18, 28, 58, 0.95);
+  border-right: 2px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 32px 0 rgba(0,0,0,0.18);
+  backdrop-filter: blur(8px);
+  border-radius: 1.5rem 0 0 1.5rem;
+}
 }
