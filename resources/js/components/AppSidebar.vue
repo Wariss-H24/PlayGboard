@@ -16,11 +16,27 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import Traducteur from '@/pages/Traducteur.vue';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Traducteur',
+        href: traducteur(),
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Traducteur',
+        href: traducteur(),
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Traducteur',
+        href: traducteur(),
         icon: LayoutGrid,
     },
 ];
