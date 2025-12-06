@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ArrowLeft, ArrowRightLeft } from 'lucide-vue-next';
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import AudioTranslator from '@/components/AudioTranslator.vue';
 import { ref, computed, watch, onMounted } from 'vue';
 import { type BreadcrumbItem } from '@/types';
 import { traducteur } from '@/routes';
@@ -44,6 +45,8 @@ const languages = [
 ];
 
 const maxChars = 2000;
+
+const currentTab = ref<'text' | 'pdf' | 'audio'>('text');
 
 const source = ref('auto');
 const target = ref('fr');
@@ -177,7 +180,34 @@ watch([source, target], () => {
             </div>
 
             <div class="bg-white rounded shadow p-4">
-                <div class="flex gap-4">
+                <!-- Onglets -->
+                <div class="flex gap-2 mb-4 border-b">
+                    <button
+                        @click="currentTab = 'text'"
+                        :class="[
+                            'px-4 py-2 font-medium border-b-2 transition',
+                            currentTab === 'text'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-neutral-600 hover:text-neutral-900',
+                        ]"
+                    >
+                        📝 Texte
+                    </button>
+                    <button
+                        @click="currentTab = 'audio'"
+                        :class="[
+                            'px-4 py-2 font-medium border-b-2 transition',
+                            currentTab === 'audio'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-neutral-600 hover:text-neutral-900',
+                        ]"
+                    >
+                        🎤 Audio
+                    </button>
+                </div>
+
+                <!-- Contenu onglet Texte -->
+                <div v-show="currentTab === 'text'">
                     <!-- Left: input -->
                     <div class="w-1/2">
                         <div class="flex items-center justify-between mb-2">
@@ -208,7 +238,7 @@ watch([source, target], () => {
                             <div class="text-sm font-medium">Traduire en</div>
                             <div class="flex items-center gap-2">
                                 <button @click="swapLanguages" title="Inverser les langues" class="swap-btn">
-                                    <ArrowRightLeft size="20" />
+                                    <ArrowRightLeft :size="20" />
                                 </button>
                             </div>
                         </div>
@@ -231,6 +261,11 @@ watch([source, target], () => {
                             <button @click="copyTranslated" class="copy-btn">Copier le texte</button>
                         </div>
                     </div>
+                </div>
+
+                <!-- Contenu onglet Audio -->
+                <div v-show="currentTab === 'audio'">
+                    <AudioTranslator :languages="languages" />
                 </div>
             </div>
         </div>
