@@ -130,9 +130,18 @@ function onInputChange() {
 function swapLanguages() {
     // allow swapping only real languages (not auto)
     if (source.value === 'auto') return;
+    
+    // Swap languages
     const s = source.value;
     source.value = target.value;
     target.value = s;
+    
+    // Swap texts: the translated text becomes the input, input becomes translated
+    const temp = inputText.value;
+    inputText.value = translatedText.value;
+    translatedText.value = temp;
+    
+    // Retranslate with new language pair
     void doTranslate();
 }
 
