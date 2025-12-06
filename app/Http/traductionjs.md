@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import axios from 'axios';
-import { ArrowLeft, ArrowRightLeft } from 'lucide-vue-next';
+import { ArrowLeft, Swap } from 'lucide-vue-next';
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { ref, computed, watch, onMounted } from 'vue';
@@ -56,12 +55,18 @@ const charCount = computed(() => inputText.value.length);
 
 let debounceTimer: number | undefined;
 
-// Use backend proxy routes instead of direct API
-const API_BASE = '/api/translation';
+// Use LibreTranslate public instance; you can change this to your own server or API key.
+const API_BASE = 'https://libretranslate.de';
 
 async function detectLanguage(q: string) {
     try {
-        const { data } = await axios.post(`${API_BASE}/detect`, { q });
+        const res = await fetch(`${API_BASE}/detect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q }),
+        });
+        if (!res.ok) throw new Error('Detection failed');
+        const data = await res.json();
         // data is an array like [{language: 'en', confidence: 0.8}]
         if (Array.isArray(data) && data.length > 0) {
             return data[0].language as string;
@@ -76,18 +81,20 @@ async function translate(q: string, src: string, tgt: string) {
     try {
         loading.value = true;
         error.value = '';
-        const { data } = await axios.post(`${API_BASE}/translate`, {
-            q,
-            source: src === 'auto' ? 'auto' : src,
-            target: tgt,
-            format: 'text',
+        const res = await fetch(`${API_BASE}/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q, source: src === 'auto' ? 'auto' : src, target: tgt, format: 'text' }),
         });
-        console.log('Translation response:', data);
-        const result = data?.translatedText || data?.translated_text || '';
-        return result as string;
+        if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(txt || 'Translation failed');
+        }
+        const data = await res.json();
+        return (data.translatedText as string) || '';
     } catch (e: any) {
-        console.error('Translation error:', e);
-        error.value = e?.response?.data?.error || e?.message || 'Erreur de traduction';
+        console.error(e);
+        error.value = e?.message || 'Erreur de traduction';
         return '';
     } finally {
         loading.value = false;
@@ -185,12 +192,13 @@ watch([source, target], () => {
                             class="w-full h-48 p-3 border rounded resize-none"
                         ></textarea>
 
-                        <div class="mt-3 text-sm text-neutral-700">Langue source:</div>
-                        <select v-model="source" class="w-full mt-2 p-2 border rounded">
-                            <option v-for="lang in languages" :key="lang.code" :value="lang.code">
-                                {{ lang.name }}
-                            </option>
-                        </select>
+                        <div class="mt-3 text-sm text-neutral-700">Choisir la langue source (ou laissez « Détection automatique »):</div>
+                        <div class="flex flex-wrap gap-2 mt-2 max-h-36 overflow-auto p-2 border rounded">
+                            <label v-for="lang in languages" :key="lang.code" class="inline-flex items-center gap-2 text-sm mr-2">
+                                <input type="radio" name="sourceLang" :value="lang.code" v-model="source" />
+                                <span>{{ lang.name }}</span>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Right: output -->
@@ -198,8 +206,8 @@ watch([source, target], () => {
                         <div class="flex items-center justify-between mb-2">
                             <div class="text-sm font-medium">Traduire en</div>
                             <div class="flex items-center gap-2">
-                                <button @click="swapLanguages" title="Inverser les langues" class="swap-btn">
-                                    <ArrowRightLeft size="20" />
+                                <button @click="swapLanguages" title="Inverser" class="inline-flex items-center p-1 border rounded hover:bg-neutral-100">
+                                    <Swap />
                                 </button>
                             </div>
                         </div>
@@ -210,16 +218,17 @@ watch([source, target], () => {
                             <div v-else class="whitespace-pre-wrap text-neutral-800">{{ translatedText || (inputText ? '—' : '') }}</div>
                         </div>
 
-                        <div class="mt-3 text-sm text-neutral-700">Langue cible:</div>
-                        <select v-model="target" class="w-full mt-2 p-2 border rounded">
-                            <option v-for="lang in languages.filter(l => l.code !== 'auto')" :key="'t-'+lang.code" :value="lang.code">
-                                {{ lang.name }}
-                            </option>
-                        </select>
+                        <div class="mt-3 text-sm text-neutral-700">Choisir la langue cible:</div>
+                        <div class="flex flex-wrap gap-2 mt-2 max-h-36 overflow-auto p-2 border rounded">
+                            <label v-for="lang in languages" v-if="lang.code !== 'auto'" :key="'t-'+lang.code" class="inline-flex items-center gap-2 text-sm mr-2">
+                                <input type="radio" name="targetLang" :value="lang.code" v-model="target" />
+                                <span>{{ lang.name }}</span>
+                            </label>
+                        </div>
 
                         <div class="mt-3 flex items-center gap-3">
                             <div class="text-xs text-neutral-500">Langue détectée: <strong>{{ detectedLang || '—' }}</strong></div>
-                            <button @click="copyTranslated" class="copy-btn">Copier le texte</button>
+                            <button @click="copyTranslated" class="ml-auto inline-flex items-center gap-2 px-2 py-1 text-sm border rounded hover:bg-neutral-100">Copier le texte</button>
                         </div>
                     </div>
                 </div>
@@ -235,79 +244,6 @@ watch([source, target], () => {
 .shadow { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 .h-48 { height: 12rem; }
 .max-h-36 { max-height: 9rem; }
-.bg-neutral-50 { background-color: #ffffff !important; }
+.bg-neutral-50 { background-color: #fafafa; }
 .hover\:bg-neutral-100:hover { background-color: #f3f4f6; }
-
-textarea {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid #d1d5db;
-}
-
-textarea::placeholder {
-  color: #9ca3af;
-}
-
-select {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid #d1d5db;
-}
-
-.bg-neutral-50 {
-  background-color: #ffffff !important;
-  color: #000000;
-}
-
-/* Swap button styling */
-.swap-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  border: 2px solid #3b82f6;
-  background-color: #3b82f6;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.swap-btn:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  transform: scale(1.05);
-}
-
-.swap-btn:active {
-  transform: scale(0.95);
-}
-
-/* Copy button styling */
-.copy-btn {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: 2px solid #10b981;
-  background-color: #10b981;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.copy-btn:hover {
-  background-color: #059669;
-  border-color: #059669;
-  transform: scale(1.05);
-}
-
-.copy-btn:active {
-  transform: scale(0.95);
-}
 </style>

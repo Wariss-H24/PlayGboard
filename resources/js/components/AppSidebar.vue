@@ -21,7 +21,7 @@ import Traducteur from '@/pages/Traducteur.vue';
 
 const mainNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard(), icon: Home },
-    { title: 'Traducteur', href: traducteur(), icon: BookOpen3 },
+    { title: 'Traducteur', href: traducteur(), icon: BookOpen },
     { title: 'Historique', href: historique(), icon: Clock },
     { title: 'Parametres', href: parametres(), icon: Settings },
     { title: 'Mon Compte', href: compte(), icon: User },
