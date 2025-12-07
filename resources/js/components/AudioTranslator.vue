@@ -1,233 +1,142 @@
 <template>
-  <div style="padding: 24px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">🎤 Traducteur Audio</h2>
+  <div style="padding: 24px; background: white; border-radius: 8px;">
+    <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 24px;">🎤 Traducteur Audio</h2>
 
-    <!-- Mode sélection -->
-    <div style="margin-bottom: 24px; display: flex; gap: 16px;">
-      <button
-        @click="mode = 'record'"
-        :style="{
-          padding: '8px 16px',
-          borderRadius: '6px',
-          fontWeight: '500',
-          border: 'none',
-          cursor: 'pointer',
-          backgroundColor: mode === 'record' ? '#3b82f6' : '#d1d5db',
-          color: mode === 'record' ? 'white' : '#374151',
-          transition: 'all 0.2s'
-        }"
-      >
-        🎙️ Enregistrer / Upload
-      </button>
-      <button
-        @click="mode = 'text'"
-        :style="{
-          padding: '8px 16px',
-          borderRadius: '6px',
-          fontWeight: '500',
-          border: 'none',
-          cursor: 'pointer',
-          backgroundColor: mode === 'text' ? '#3b82f6' : '#d1d5db',
-          color: mode === 'text' ? 'white' : '#374151',
-          transition: 'all 0.2s'
-        }"
-      >
-        📝 Texte → Audio
-      </button>
-    </div>
+    <!-- PARTIE 1: ENREGISTREMENT -->
+    <div style="padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; margin-bottom: 24px;">
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">📢 Enregistrer et Traduire</h3>
 
-    <!-- Mode 1: Enregistrement / Upload audio -->
-    <div v-if="mode === 'record'" style="display: flex; flex-direction: column; gap: 16px;">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-        <!-- Enregistrement microphone -->
-        <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px;">
-          <h3 style="font-weight: 500; margin-bottom: 12px; color: #111827;">Enregistrement microphone</h3>
-          <button
-            @click="handleRecordClick"
-            :disabled="!!audioFile"
-            style="{
-              width: '100%',
-              padding: '8px 16px',
-              marginBottom: '8px',
-              backgroundColor: !!audioFile ? '#d1d5db' : (isRecording ? '#dc2626' : '#ef4444'),
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: '500',
-              cursor: !!audioFile ? 'not-allowed' : 'pointer',
-              opacity: !!audioFile ? 0.6 : 1
-            }"
-          >
-            {{ isRecording ? '⏹️ Arrêter' : '⏺️ Enregistrer' }}
-          </button>
-          <div v-if="recordingTime" style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
-            Durée: {{ recordingTime }}s
-          </div>
-        </div>
-
-        <!-- Upload fichier -->
-        <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px;">
-          <h3 style="font-weight: 500; margin-bottom: 12px; color: #111827;">Upload fichier audio</h3>
-          <label style="display: block;">
-            <span style="display: none;">Choisir fichier</span>
-            <input
-              type="file"
-              accept="audio/*"
-              @change="handleFileSelect"
-              style="display: block; width: 100%; font-size: 14px;"
-            />
-          </label>
-        </div>
+      <!-- Langue cible -->
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Traduire en:</label>
+        <select v-model="recordTargetLang" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+          <option value="fr">Français</option>
+          <option value="en">Anglais</option>
+          <option value="es">Espagnol</option>
+          <option value="de">Allemand</option>
+        </select>
       </div>
 
-      <!-- Fichier sélectionné -->
-      <div v-if="audioFile || recordedBlob" style="background: #eff6ff; padding: 12px; border-radius: 6px; font-size: 14px; color: #1e40af; border: 1px solid #bfdbfe;">
-        📁 Fichier sélectionné: {{ audioFile?.name || 'Enregistrement microphone' }}
+      <!-- Bouton Enregistrer -->
+      <div style="margin-bottom: 16px;">
+        <button
+          @click="toggleRecording"
+          style="width: 100%; padding: 12px 16px; border: none; border-radius: 6px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s;"
+          :style="{ backgroundColor: isRecording ? '#dc2626' : '#3b82f6' }"
+        >
+          {{ isRecording ? '⏹️ Arrêter l\'enregistrement' : '⏺️ Enregistrer' }}
+        </button>
       </div>
 
-      <!-- Langue source et cible -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-        <div>
-          <label style="font-size: 14px; font-weight: 500; color: #111827; display: block;">Langue source (auto-détectée)</label>
-          <select
-            v-model="sourceLangAudio"
-            style="width: 100%; margin-top: 8px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-          >
-            <option value="auto">Détection automatique</option>
-            <option value="fr">Français</option>
-            <option value="en">Anglais</option>
-            <option value="es">Espagnol</option>
-            <option value="de">Allemand</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size: 14px; font-weight: 500; color: #111827; display: block;">Langue cible</label>
-          <select
-            v-model="targetLangAudio"
-            style="width: 100%; margin-top: 8px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"
-          >
-            <option value="fr">Français</option>
-            <option value="en">Anglais</option>
-            <option value="es">Espagnol</option>
-            <option value="de">Allemand</option>
-            <option value="it">Italien</option>
-          </select>
-        </div>
+      <!-- Chrono -->
+      <div v-if="isRecording" style="text-align: center; margin-bottom: 16px; font-size: 24px; font-weight: 700; color: #dc2626;">
+        ⏱️ {{ recordingTime }}s
       </div>
 
-      <!-- Bouton traduire -->
-      <button
-        @click="transcribeAndTranslate"
-        :disabled="(!audioFile && !recordedBlob) || isTranscribing"
-        style="{
-          width: '100%',
-          padding: '10px 16px',
-          backgroundColor: ((!audioFile && !recordedBlob) || isTranscribing) ? '#d1d5db' : '#10b981',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          fontWeight: '500',
-          cursor: ((!audioFile && !recordedBlob) || isTranscribing) ? 'not-allowed' : 'pointer',
-          opacity: ((!audioFile && !recordedBlob) || isTranscribing) ? 0.6 : 1
-        }"
-      >
-        {{ isTranscribing ? '⏳ Traitement...' : '🚀 Transcrire & Traduire' }}
-      </button>
+      <!-- Zone transcription (toujours visible) -->
+      <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 6px; min-height: 50px;">
+        <p style="font-size: 13px; color: #1e40af; line-height: 1.6; margin: 0;">
+          <strong>Texte enregistré:</strong>
+          {{ recordingTranscript || '(appuyez sur Enregistrer pour commencer)' }}
+        </p>
+      </div>
+
+      <!-- Bouton Traduire -->
+      <div style="margin-bottom: 16px;">
+        <button
+          @click="doTranslateRecording"
+          :disabled="isTranslating || !recordingTranscript"
+          style="width: 100%; padding: 12px 16px; border: none; border-radius: 6px; font-weight: 600; color: white; transition: all 0.2s;"
+          :style="{
+            backgroundColor: (isTranslating || !recordingTranscript) ? '#d1d5db' : '#10b981',
+            cursor: (isTranslating || !recordingTranscript) ? 'not-allowed' : 'pointer',
+            opacity: (isTranslating || !recordingTranscript) ? 0.6 : 1
+          }"
+        >
+          {{ isTranslating ? '⏳ Traduction en cours...' : '🌐 Traduire' }}
+        </button>
+      </div>
+
+      <!-- Résultat traduction -->
+      <div v-if="recordingTranslation" style="padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; margin-bottom: 16px;">
+        <p style="font-size: 13px; color: #1e40af; margin: 0;">
+          <strong>Traduction:</strong> {{ recordingTranslation }}
+        </p>
+      </div>
 
       <!-- Erreur -->
-      <div
-        v-if="audioError"
-        style="background: #fee2e2; border: 1px solid #fecaca; padding: 12px; border-radius: 6px; color: #991b1b; font-size: 14px;"
-      >
-        {{ audioError }}
+      <div v-if="recordError" style="padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 6px; color: #991b1b; font-size: 13px;">
+        {{ recordError }}
       </div>
 
-      <!-- Résultat -->
-      <div v-if="transcribedText || translatedAudioText" style="display: flex; flex-direction: column; gap: 12px;">
-        <div style="background: #f3f4f6; padding: 12px; border-radius: 6px;">
-          <h4 style="font-weight: 500; margin-bottom: 8px; color: #111827;">Texte transcrit</h4>
-          <p style="font-size: 14px; color: #374151;">{{ transcribedText }}</p>
+      <!-- Debug: micro level + logs -->
+      <div style="margin-top:12px; padding:8px; border-top:1px dashed #e5e7eb;">
+        <div style="font-size:12px; color:#374151; margin-bottom:6px;"><strong>Micro level:</strong></div>
+        <div style="height:10px; background:#e5e7eb; border-radius:4px; overflow:hidden; margin-bottom:8px;">
+          <div :style="{width: (Math.min(1, audioLevel) * 100) + '%', height: '100%', background: '#10b981', transition: 'width 0.1s linear'}"></div>
         </div>
-
-        <div style="background: #eff6ff; padding: 12px; border-radius: 6px;">
-          <h4 style="font-weight: 500; margin-bottom: 8px; color: #1e40af;">Texte traduit</h4>
-          <p style="font-size: 14px; color: #374151;">{{ translatedAudioText }}</p>
-        </div>
-
-        <!-- Playback audio traduit -->
-        <div v-if="translatedAudioText" style="background: #f0fdf4; padding: 12px; border-radius: 6px;">
-          <h4 style="font-weight: 500; margin-bottom: 8px; color: #166534;">🔊 Écouter la traduction</h4>
-          <button
-            @click="speakTranslation"
-            :disabled="isSpeaking"
-            style="{
-              width: '100%',
-              padding: '10px 16px',
-              backgroundColor: isSpeaking ? '#d1d5db' : '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: '500',
-              cursor: isSpeaking ? 'not-allowed' : 'pointer',
-              opacity: isSpeaking ? 0.6 : 1
-            }"
-          >
-            {{ isSpeaking ? '🔊 En cours...' : '▶️ Jouer audio' }}
-          </button>
+        <div style="font-size:12px; color:#374151; margin-bottom:6px;"><strong>Recognition logs (dernieres 10):</strong></div>
+        <div style="max-height:120px; overflow:auto; background:#f8fafc; border:1px solid #eef2ff; padding:8px; border-radius:6px; font-size:12px; color:#111827;">
+          <div v-for="(l, idx) in eventLogs.slice().reverse()" :key="idx" style="padding:4px 0; border-bottom:1px dashed #f1f5f9;">
+            <div style="font-weight:600; font-size:11px; color:#0f172a">{{ l.time }}</div>
+            <div style="font-size:12px; color:#374151">{{ l.msg }}</div>
+          </div>
+          <div v-if="eventLogs.length===0" style="color:#6b7280">(aucun événement enregistré)</div>
         </div>
       </div>
     </div>
 
-    <!-- Mode 2: Texte vers Audio -->
-    <div v-if="mode === 'text'" style="display: flex; flex-direction: column; gap: 16px;">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-        <div>
-          <label style="font-size: 14px; font-weight: 500; block mb-2; color: #111827; display: block; margin-bottom: 8px;">Texte à convertir</label>
-          <textarea
-            v-model="textToSpeak"
-            placeholder="Entrez du texte..."
-            style="width: 100%; height: 128px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; font-family: sans-serif; resize: none;"
-          ></textarea>
-        </div>
+    <!-- PARTIE 2: TEXTE VERS AUDIO -->
+    <div style="padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">📝 Texte en Audio</h3>
 
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div>
-            <label style="font-size: 14px; font-weight: 500; color: #111827; display: block; margin-bottom: 8px;">Langue</label>
-            <select v-model="textSpeakLang" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-              <option value="fr">Français</option>
-              <option value="en">Anglais</option>
-              <option value="es">Espagnol</option>
-              <option value="de">Allemand</option>
-              <option value="it">Italien</option>
-              <option value="ja">Japonais</option>
-            </select>
-          </div>
+      <!-- Langue du texte -->
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Langue:</label>
+        <select v-model="textLang" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+          <option value="fr">Français</option>
+          <option value="en">Anglais</option>
+          <option value="es">Espagnol</option>
+          <option value="de">Allemand</option>
+        </select>
+      </div>
 
-          <button
-            @click="speakText"
-            :disabled="!textToSpeak || isSpeaking"
-            style="{
-              width: '100%',
-              padding: '10px 16px',
-              backgroundColor: (!textToSpeak || isSpeaking) ? '#d1d5db' : '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: '500',
-              cursor: (!textToSpeak || isSpeaking) ? 'not-allowed' : 'pointer',
-              opacity: (!textToSpeak || isSpeaking) ? 0.6 : 1
-            }"
-          >
-            {{ isSpeaking ? '🔊 En cours...' : '▶️ Jouer' }}
-          </button>
+      <!-- Textarea -->
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Texte:</label>
+        <textarea
+          v-model="textInput"
+          placeholder="Entrez le texte..."
+          style="width: 100%; height: 100px; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;"
+        ></textarea>
+      </div>
 
-          <button
-            @click="stopSpeaking"
-            style="width: 100%; padding: 10px 16px; background: #6b7280; hover: #4b5563; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;"
-          >
-            ⏹️ Arrêter
-          </button>
-        </div>
+      <!-- Boutons -->
+      <div style="display: flex; gap: 12px;">
+        <button
+          @click="speakText"
+          :disabled="!textInput || isTextSpeaking"
+          style="flex: 1; padding: 12px 16px; border: none; border-radius: 6px; font-weight: 600; color: white; transition: all 0.2s;"
+          :style="{
+            backgroundColor: (!textInput || isTextSpeaking) ? '#d1d5db' : '#10b981',
+            cursor: (!textInput || isTextSpeaking) ? 'not-allowed' : 'pointer',
+            opacity: (!textInput || isTextSpeaking) ? 0.6 : 1
+          }"
+        >
+          {{ isTextSpeaking ? '🔊 En cours...' : '▶️ Écouter' }}
+        </button>
+        <button
+          @click="stopTextSpeaking"
+          :disabled="!isTextSpeaking"
+          style="flex: 1; padding: 12px 16px; border: none; border-radius: 6px; font-weight: 600; color: white; transition: all 0.2s;"
+          :style="{
+            backgroundColor: !isTextSpeaking ? '#d1d5db' : '#6b7280',
+            cursor: !isTextSpeaking ? 'not-allowed' : 'pointer',
+            opacity: !isTextSpeaking ? 0.6 : 1
+          }"
+        >
+          ⏹️ Arrêter
+        </button>
       </div>
     </div>
   </div>
@@ -236,80 +145,38 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import axios from 'axios';
+import { nextTick } from 'vue';
 
-// États généraux
-const mode = ref<'record' | 'text'>('record');
-
-// Enregistrement audio
+// ==================== PARTIE 1: ENREGISTREMENT ====================
+const recordTargetLang = ref('fr');
 const isRecording = ref(false);
 const recordingTime = ref(0);
-const audioFile = ref<File | null>(null);
-const recordedBlob = ref<Blob | null>(null);
+const recordingTranscript = ref('');
+const recordingTranslation = ref('');
+const recordError = ref('');
+const isTranslating = ref(false);
+
+// Debug helpers
+const audioLevel = ref(0); // 0..1
+const eventLogs = ref<Array<{time:string,msg:string}>>([]);
+
+function pushLog(msg: string) {
+  try {
+    const t = new Date().toLocaleTimeString();
+    eventLogs.value.push({ time: t, msg });
+    if (eventLogs.value.length > 50) eventLogs.value.shift();
+  } catch (e) {}
+}
+
 let mediaRecorder: MediaRecorder | null = null;
 let recordingTimer: number | null = null;
-let audioChunks: BlobPart[] = [];
+let recognition: any = null;
+let audioCtx: AudioContext | null = null;
+let analyser: AnalyserNode | null = null;
+let sourceNode: MediaStreamAudioSourceNode | null = null;
+let meterInterval: number | null = null;
 
-// Traduction audio
-const sourceLangAudio = ref('auto');
-const targetLangAudio = ref('fr');
-const isTranscribing = ref(false);
-const audioError = ref('');
-const transcribedText = ref('');
-const translatedAudioText = ref('');
-
-// Text-to-speech
-const textToSpeak = ref('');
-const textSpeakLang = ref('fr');
-const isSpeaking = ref(false);
-let speechSynthesis: SpeechSynthesisUtterance | null = null;
-
-/**
- * Démarrer l'enregistrement microphone
- */
-async function startRecording() {
-  try {
-    audioError.value = '';
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = (event) => {
-      audioChunks.push(event.data);
-    };
-
-    mediaRecorder.onstop = () => {
-      recordedBlob.value = new Blob(audioChunks, { type: 'audio/webm' });
-    };
-
-    mediaRecorder.start();
-    isRecording.value = true;
-    recordingTime.value = 0;
-
-    // Compteur de temps
-    recordingTimer = window.setInterval(() => {
-      recordingTime.value++;
-    }, 1000);
-  } catch (error) {
-    audioError.value =
-      'Accès microphone refusé. Vérifiez les permissions du navigateur.';
-  }
-}
-
-/**
- * Arrêter l'enregistrement
- */
-function stopRecording() {
-  if (mediaRecorder && isRecording.value) {
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-    isRecording.value = false;
-    if (recordingTimer) clearInterval(recordingTimer);
-    recordingTime.value = 0;
-  }
-}
-
-// Gérer le bouton enregistrement/arrêt
-async function handleRecordClick() {
+async function toggleRecording() {
   if (isRecording.value) {
     stopRecording();
   } else {
@@ -317,144 +184,207 @@ async function handleRecordClick() {
   }
 }
 
-/**
- * Gérer upload fichier
- */
-function handleFileSelect(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (input.files?.[0]) {
-    audioFile.value = input.files[0];
-    recordedBlob.value = null;
-  }
-}
-
-/**
- * Transcrire audio via Web Speech API (côté client)
- * Note: Web Speech API fonctionne mieux en reconnaissance continue
- */
-async function transcribeAndTranslate() {
+async function startRecording() {
   try {
-    isTranscribing.value = true;
-    audioError.value = '';
-    transcribedText.value = '';
-    translatedAudioText.value = '';
+    recordError.value = '';
+    recordingTranscript.value = '';
+    recordingTranslation.value = '';
 
-    // Prépa blob audio
-    const blob = audioFile.value || recordedBlob.value;
-    if (!blob) {
-      throw new Error('Aucun fichier audio sélectionné');
+    // Accès microphone
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    pushLog('Micro: permission accordée');
+    mediaRecorder = new MediaRecorder(stream);
+    // setup audio analyser to show level
+    try {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      sourceNode = audioCtx.createMediaStreamSource(stream);
+      sourceNode.connect(analyser);
+      // poll level
+      meterInterval = window.setInterval(() => {
+        if (!analyser) return;
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteTimeDomainData(data);
+        // compute RMS
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        audioLevel.value = rms; // 0..~0.7
+      }, 100);
+    } catch (e) {
+      pushLog('Audio analyser impossible: ' + (e as any).message);
+    }
+    mediaRecorder.start();
+    isRecording.value = true;
+    recordingTime.value = 0;
+
+    // Chronomètre
+    recordingTimer = window.setInterval(() => {
+      recordingTime.value++;
+    }, 1000);
+
+    // Web Speech API
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    if (!SpeechRecognition) {
+      throw new Error('Web Speech API non supportée dans ce navigateur');
     }
 
-    // Créer FormData avec audio
-    const fd = new FormData();
-    fd.append('audio', blob);
-    fd.append('source', sourceLangAudio.value);
-    fd.append('target', targetLangAudio.value);
-
-    // Appel backend (placeholder pour transcription côté serveur si nécessaire)
-    // Pour maintenant, on utilise Web Speech API directement côté client
-    const recognized = await clientTranscribe(blob);
-
-    if (!recognized) {
-      throw new Error('Transcription échouée');
-    }
-
-    transcribedText.value = recognized;
-
-    // Traduction via endpoint existant
-    const { data } = await axios.post('/api/translation/translate', {
-      q: recognized,
-      source: sourceLangAudio.value === 'auto' ? 'en' : sourceLangAudio.value,
-      target: targetLangAudio.value,
-    });
-
-    translatedAudioText.value = data.translatedText || data.translated_text || '';
-  } catch (error: any) {
-    audioError.value = error.message || 'Erreur lors de la traduction audio';
-  } finally {
-    isTranscribing.value = false;
-  }
-}
-
-/**
- * Transcrire audio côté client via Web Speech API
- * (Limitation: fonctionne mieux dans certains navigateurs, anglais/français supportés)
- */
-function clientTranscribe(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const recognition = new (window as any).webkitSpeechRecognition();
+    recognition = new SpeechRecognition();
     recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.language = sourceLangAudio.value === 'auto' ? 'en-US' : sourceLangAudio.value;
+    recognition.interimResults = true;
+    recognition.lang = 'fr-FR';
+
+    let fullTranscript = '';
 
     recognition.onresult = (event: any) => {
-      let transcript = '';
+      let interim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
+        const res = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          fullTranscript += (fullTranscript ? ' ' : '') + res;
+        } else {
+          interim += res;
+        }
       }
-      resolve(transcript);
+      recordingTranscript.value = (fullTranscript + (interim ? ' ' + interim : '')).trim();
+      console.log('[AudioTranslator] Transcript updated:', recordingTranscript.value);
+      pushLog('onresult — interim length ' + recordingTranscript.value.length);
     };
 
     recognition.onerror = (event: any) => {
-      reject(new Error(`Erreur reconnaissance vocale: ${event.error}`));
+      console.warn('[AudioTranslator] Recognition error:', event.error);
+      pushLog('onerror: ' + event.error);
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        let msg = event.error;
+        if (event.error === 'network') msg = 'Problème réseau — vérifiez Internet';
+        if (event.error === 'not-allowed') msg = 'Permission micro refusée';
+        recordError.value = msg;
+      }
     };
 
-    // Convertir blob en audio et jouer
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.onended = () => {
-      recognition.stop();
+    recognition.onend = () => {
+      console.log('[AudioTranslator] Recognition ended. Final transcript:', fullTranscript);
+      pushLog('onend — final length ' + (fullTranscript.trim().length));
+      recordingTranscript.value = fullTranscript.trim() || recordingTranscript.value;
+      isRecording.value = false;
+      if (recordingTimer) clearInterval(recordingTimer);
+      // stop meter
+      if (meterInterval) { clearInterval(meterInterval); meterInterval = null; }
+      try { if (sourceNode) sourceNode.disconnect(); } catch(e) {}
+      try { if (analyser) analyser.disconnect(); } catch(e) {}
+      try { if (audioCtx) audioCtx.close(); audioCtx = null; } catch(e) {}
     };
+
     recognition.start();
-    audio.play();
-  });
-}
-
-/**
- * Parler la traduction (TTS via Web Speech API)
- */
-function speakTranslation() {
-  if (!translatedAudioText.value) return;
-  speakText();
-}
-
-/**
- * Convertir texte en parole (Text-to-Speech)
- */
-function speakText() {
-  if (!textToSpeak.value && !translatedAudioText.value) return;
-
-  const text = translatedAudioText.value || textToSpeak.value;
-  const lang = translatedAudioText.value
-    ? targetLangAudio.value
-    : textSpeakLang.value;
-
-  if ('speechSynthesis' in window) {
-    isSpeaking.value = true;
-    speechSynthesis = new SpeechSynthesisUtterance(text);
-    speechSynthesis.lang = getLangCode(lang);
-    speechSynthesis.onend = () => {
-      isSpeaking.value = false;
-    };
-    window.speechSynthesis.speak(speechSynthesis);
-  } else {
-    audioError.value = 'Web Speech API non supportée dans ce navigateur';
+  } catch (error: any) {
+    recordError.value = error.message || 'Erreur microphone';
+    isRecording.value = false;
+    if (recordingTimer) clearInterval(recordingTimer);
+    console.error('[AudioTranslator] Start recording error:', error);
   }
 }
 
-/**
- * Arrêter la parole
- */
-function stopSpeaking() {
+function stopRecording() {
+  isRecording.value = false;
+  if (recognition) {
+    try {
+      recognition.stop();
+    } catch (e) {
+      //
+    }
+  }
+  if (mediaRecorder) {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+  }
+  if (recordingTimer) clearInterval(recordingTimer);
+  console.log('[AudioTranslator] Recording stopped. Transcript:', recordingTranscript.value);
+}
+
+async function doTranslateRecording() {
+  if (!recordingTranscript.value.trim()) {
+    recordError.value = 'Aucun texte à traduire';
+    return;
+  }
+
+  try {
+    isTranslating.value = true;
+    recordError.value = '';
+    recordingTranslation.value = '';
+
+    console.log('[AudioTranslator] Starting translation for:', recordingTranscript.value);
+
+    // Crée une promesse qui reject après 8 secondes (timeout)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
+    );
+
+    // Lance la requête axios
+    const translationPromise = axios.post('/api/translation/translate', {
+      q: recordingTranscript.value,
+      source: 'auto',
+      target: recordTargetLang.value,
+    });
+
+    // Attend la première à terminer (requête ou timeout)
+    const { data } = await Promise.race([translationPromise, timeoutPromise]);
+
+    recordingTranslation.value = data.translatedText || data.translated_text || '';
+    console.log('[AudioTranslator] Translation completed:', recordingTranslation.value);
+  } catch (error: any) {
+    console.error('[AudioTranslator] Translation error:', error.message, error);
+
+    // Messages d'erreur clairs et spécifiques
+    if (error.message === 'TIMEOUT') {
+      recordError.value = '⏳ La traduction prend trop de temps (plus de 8 secondes). Vérifiez votre connexion Internet.';
+    } else if (error.response?.status === 429) {
+      recordError.value = '❌ Quota API atteint — réessayez dans quelques minutes.';
+    } else if (error.response?.data?.error) {
+      recordError.value = '❌ ' + error.response.data.error;
+    } else if (error.code === 'ECONNABORTED') {
+      recordError.value = '❌ Connexion interrompue — vérifiez Internet.';
+    } else {
+      recordError.value = '❌ Erreur réseau — vérifiez votre connexion.';
+    }
+  } finally {
+    isTranslating.value = false;
+  }
+}
+
+// ==================== PARTIE 2: TEXTE VERS AUDIO ====================
+const textInput = ref('');
+const textLang = ref('fr');
+const isTextSpeaking = ref(false);
+
+function speakText() {
+  if (!textInput.value || !('speechSynthesis' in window)) return;
+
+  isTextSpeaking.value = true;
+  const utterance = new SpeechSynthesisUtterance(textInput.value);
+  utterance.lang = getLangCode(textLang.value);
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  utterance.onend = () => (isTextSpeaking.value = false);
+  utterance.onerror = () => (isTextSpeaking.value = false);
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
+  console.log('[AudioTranslator] Speaking:', textInput.value);
+}
+
+function stopTextSpeaking() {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
-    isSpeaking.value = false;
+    isTextSpeaking.value = false;
+    console.log('[AudioTranslator] Speech stopped');
   }
 }
 
-/**
- * Convertir code langue court en locale complète
- */
 function getLangCode(lang: string): string {
   const map: Record<string, string> = {
     fr: 'fr-FR',
@@ -462,17 +392,15 @@ function getLangCode(lang: string): string {
     es: 'es-ES',
     de: 'de-DE',
     it: 'it-IT',
+    pt: 'pt-BR',
     ja: 'ja-JP',
+    zh: 'zh-CN',
   };
   return map[lang] || lang;
 }
 
-/**
- * Cleanup
- */
 onUnmounted(() => {
-  if (recordingTimer) clearInterval(recordingTimer);
-  if (mediaRecorder && isRecording.value) stopRecording();
-  stopSpeaking();
+  stopRecording();
+  stopTextSpeaking();
 });
 </script>
